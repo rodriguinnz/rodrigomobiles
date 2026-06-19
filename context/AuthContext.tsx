@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+
 import {
   authApi,
   getToken,
@@ -21,23 +22,31 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   login: (email: string, senha: string) => Promise<void>;
+
   register: (
     nome: string,
     email: string,
     senha: string,
-    telefone?: string
+    telefone?: string,
   ) => Promise<void>;
+
   logout: () => Promise<void>;
+
   refreshUser: () => Promise<void>;
+
+  updateProfile: (
+    nome: string,
+    email: string,
+    telefone?: string,
+    fotoPerfil?: string,
+  ) => Promise<void>;
+
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
     token: null,
@@ -69,6 +78,8 @@ export function AuthProvider({
         loading: false,
       });
     } catch (error) {
+      console.log("Erro ao carregar sessão:", error);
+
       await removeToken();
 
       setState({
@@ -92,17 +103,12 @@ export function AuthProvider({
   }, []);
 
   const register = useCallback(
-    async (
-      nome: string,
-      email: string,
-      senha: string,
-      telefone?: string
-    ) => {
+    async (nome: string, email: string, senha: string, telefone?: string) => {
       const { user, accessToken } = await authApi.register(
         nome,
         email,
         senha,
-        telefone
+        telefone,
       );
 
       await saveToken(accessToken);
@@ -113,25 +119,23 @@ export function AuthProvider({
         loading: false,
       });
     },
-    []
+    [],
   );
 
   const logout = useCallback(async () => {
-    console.log("INICIANDO LOGOUT");
-
     try {
-      await removeToken();
+      await authApi.logout();
+    } catch {}
 
-      setState({
-        user: null,
-        token: null,
-        loading: false,
-      });
+    await removeToken();
 
-      console.log("LOGOUT REALIZADO");
-    } catch (error) {
-      console.error("ERRO AO DESLOGAR", error);
-    }
+    setState({
+      user: null,
+      token: null,
+      loading: false,
+    });
+
+    console.log("Usuário deslogado");
   }, []);
 
   const refreshUser = useCallback(async () => {
@@ -143,8 +147,43 @@ export function AuthProvider({
         user,
       }));
     } catch (error) {
-      console.error("Erro ao atualizar usuário", error);
+      console.log("Erro ao atualizar usuário:", error);
     }
+  }, []);
+
+  const updateProfile = useCallback(
+    async (
+      nome: string,
+      email: string,
+      telefone?: string,
+      fotoPerfil?: string,
+    ) => {
+      // Call authApi.updateProfile using an object payload (matches editar-perfil)
+      const { user } = await authApi.updateProfile({
+        nome,
+        email,
+        telefone,
+        fotoPerfil,
+      });
+
+      setState((prev) => ({
+        ...prev,
+        user,
+      }));
+    },
+    [],
+  );
+
+  const deleteAccount = useCallback(async () => {
+    await authApi.deleteAccount();
+
+    await removeToken();
+
+    setState({
+      user: null,
+      token: null,
+      loading: false,
+    });
   }, []);
 
   return (
@@ -155,6 +194,8 @@ export function AuthProvider({
         register,
         logout,
         refreshUser,
+        updateProfile,
+        deleteAccount,
       }}
     >
       {children}
@@ -166,9 +207,7 @@ export function useAuth() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error(
-      "useAuth deve ser usado dentro de um AuthProvider"
-    );
+    throw new Error("useAuth deve ser usado dentro do AuthProvider");
   }
 
   return context;

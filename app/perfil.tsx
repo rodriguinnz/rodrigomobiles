@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
+import { authApi } from "@/services/api";
+
 import {
   User,
   Mail,
@@ -75,6 +77,48 @@ export default function Perfil() {
     } finally {
       setLoggingOut(false);
     }
+  }
+
+  async function handleDeleteAccount() {
+    Alert.alert(
+      "Excluir Conta",
+      "Tem certeza? Esta ação é permanente e não poderá ser desfeita.",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await authApi.deleteAccount();
+
+              await logout();
+
+              Alert.alert(
+                "Sucesso",
+                "Conta excluída com sucesso."
+              );
+
+              router.replace("/login");
+            } catch (error) {
+              console.log(error);
+
+              Alert.alert(
+                "Erro",
+                "Não foi possível excluir a conta."
+              );
+            }
+          },
+        },
+      ]
+    );
+  }
+
+  function handleEditProfile() {
+    router.push("/editar-perfil");
   }
 
   const nivel =
@@ -161,18 +205,23 @@ export default function Perfil() {
         value={nivel}
       />
 
-      
+      <TouchableOpacity
+        style={styles.editButton}
+        onPress={handleEditProfile}
+      >
+        <Pencil size={18} color="#fff" />
+
+        <Text style={styles.buttonText}>
+          Editar Perfil
+        </Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() =>
-          Alert.alert(
-            "Excluir conta",
-            "Deseja excluir sua conta?"
-          )
-        }
+        onPress={handleDeleteAccount}
       >
         <Trash2 size={18} color="#fff" />
+
         <Text style={styles.buttonText}>
           Excluir Conta
         </Text>
@@ -188,6 +237,7 @@ export default function Perfil() {
         ) : (
           <>
             <LogOut size={18} color="#fff" />
+
             <Text style={styles.buttonText}>
               Sair da Conta
             </Text>
@@ -303,13 +353,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  cardLabel: { color: "#aaa" },
+  cardLabel: {
+    color: "#aaa",
+  },
+
   cardValue: {
     color: "#fff",
     fontSize: 22,
     fontWeight: "bold",
   },
-  cardSmall: { color: "#aaa" },
+
+  cardSmall: {
+    color: "#aaa",
+  },
 
   sectionTitle: {
     color: "#aaa",
@@ -349,7 +405,7 @@ const styles = StyleSheet.create({
   },
 
   deleteButton: {
-    backgroundColor: "#6b1010",
+    backgroundColor: "#7A1212",
     padding: 16,
     borderRadius: 12,
     marginTop: 12,

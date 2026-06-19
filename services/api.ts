@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 // ─── BASE URL ─────────────────────────────────────────────────────────────────
 //
@@ -11,15 +11,15 @@ import { Platform } from 'react-native';
 // e procure o endereço IPv4 da sua rede Wi-Fi.
 
 const DEV_HOST = Platform.select({
-  android: '10.0.2.2',   // Android Emulator → loopback da máquina host
-  ios: 'localhost',       // iOS Simulator
-  default: 'localhost',
+  android: "10.0.2.2", // Android Emulator → loopback da máquina host
+  ios: "localhost", // iOS Simulator
+  default: "localhost",
 });
 
-export const BASE_URL = 'http://localhost:3334/api/v1';
+export const BASE_URL = "http://localhost:3334/api/v1";
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
-const TOKEN_KEY = '@ifburguer:token';
+const TOKEN_KEY = "@ifburguer:token";
 
 export async function saveToken(token: string) {
   await AsyncStorage.setItem(TOKEN_KEY, token);
@@ -35,10 +35,10 @@ export async function removeToken() {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await getToken();
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   let res: Response;
   try {
@@ -46,7 +46,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   } catch (err: any) {
     // Erro de rede (backend offline, IP errado, CORS etc.)
     throw new Error(
-      `Não foi possível conectar ao servidor.\n\nVerifique:\n• O backend está rodando? (npm run dev)\n• BASE_URL está correto? (atual: ${BASE_URL})\n\nDetalhes: ${err?.message ?? err}`
+      `Não foi possível conectar ao servidor.\n\nVerifique:\n• O backend está rodando? (npm run dev)\n• BASE_URL está correto? (atual: ${BASE_URL})\n\nDetalhes: ${err?.message ?? err}`,
     );
   }
 
@@ -55,7 +55,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     try {
       const data = await res.json();
       msg = Array.isArray(data?.message)
-        ? data.message.join('. ')
+        ? data.message.join(". ")
         : (data?.message ?? msg);
     } catch {}
     throw new Error(msg);
@@ -66,7 +66,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
-export type Role = 'USER' | 'ADMIN';
+export type Role = "USER" | "ADMIN";
 
 export interface Usuario {
   id: number;
@@ -126,32 +126,73 @@ export interface Pedido {
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 export const authApi = {
   login: (email: string, senha: string) =>
-    request<{ user: Usuario; accessToken: string }>('/auth/login', {
-      method: 'POST',
+    request<{ user: Usuario; accessToken: string }>("/auth/login", {
+      method: "POST",
       body: JSON.stringify({ email, senha }),
     }),
+
   register: (nome: string, email: string, senha: string, telefone?: string) =>
-    request<{ user: Usuario; accessToken: string }>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ nome, email, senha, telefone }),
+    request<{ user: Usuario; accessToken: string }>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        nome,
+        email,
+        senha,
+        telefone,
+      }),
     }),
-  me: () => request<{ user: Usuario }>('/auth/me'),
-  logout: () => request<{ ok: boolean }>('/auth/logout', { method: 'POST' }),
+
+  me: () => request<{ user: Usuario }>("/auth/me"),
+
+  logout: () =>
+    request<{ ok: boolean }>("/auth/logout", {
+      method: "POST",
+    }),
+
+  updateProfile: (
+    // Accept either a single payload object or positional args for backward compatibility
+    payloadOrNome:
+      | { nome: string; email: string; telefone?: string; fotoPerfil?: string }
+      | string,
+    emailArg?: string,
+    telefoneArg?: string,
+    fotoPerfilArg?: string,
+  ) => {
+    const payload =
+      typeof payloadOrNome === "object"
+        ? payloadOrNome
+        : {
+            nome: payloadOrNome as string,
+            email: emailArg as string,
+            telefone: telefoneArg,
+            fotoPerfil: fotoPerfilArg,
+          };
+
+    return request<{ user: Usuario }>("/auth/profile", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+  deleteAccount: () =>
+    request<{ ok: boolean; message: string }>("/auth/delete-account", {
+      method: "DELETE",
+    }),
+
   redeem: (pontos: number) =>
-    request<{ user: { id: number; pontos: number } }>('/auth/redeem', {
-      method: 'POST',
+    request<{ user: { id: number; pontos: number } }>("/auth/redeem", {
+      method: "POST",
       body: JSON.stringify({ pontos }),
     }),
 };
 
 // ─── Produtos ─────────────────────────────────────────────────────────────────
 export const produtosApi = {
-  getAll: () => request<Produto[]>('/produtos'),
+  getAll: () => request<Produto[]>("/produtos"),
   getById: (id: number) => request<Produto>(`/produtos/${id}`),
   getByCategoria: (categoria: string) =>
     request<Produto[]>(`/produtos/categoria/${encodeURIComponent(categoria)}`),
-  getTop: () => request<Produto[]>('/produtos/top'),
-  getPromocoes: () => request<Produto[]>('/produtos/promocoes'),
+  getTop: () => request<Produto[]>("/produtos/top"),
+  getPromocoes: () => request<Produto[]>("/produtos/promocoes"),
 };
 
 // ─── Carrinho ─────────────────────────────────────────────────────────────────
@@ -163,13 +204,13 @@ export interface SyncItem {
 }
 
 export const carrinhoApi = {
-  get: () => request<{ itens: CarrinhoItemInfo[] }>('/carrinho'),
+  get: () => request<{ itens: CarrinhoItemInfo[] }>("/carrinho"),
   sync: (itens: SyncItem[]) =>
-    request<{ itens: CarrinhoItemInfo[] }>('/carrinho', {
-      method: 'PUT',
+    request<{ itens: CarrinhoItemInfo[] }>("/carrinho", {
+      method: "PUT",
       body: JSON.stringify({ itens }),
     }),
-  clear: () => request<{ ok: boolean }>('/carrinho', { method: 'DELETE' }),
+  clear: () => request<{ ok: boolean }>("/carrinho", { method: "DELETE" }),
 };
 
 // ─── Pedidos ──────────────────────────────────────────────────────────────────
@@ -181,9 +222,9 @@ export interface ConfirmItem {
 
 export const pedidosApi = {
   confirmar: (itens: ConfirmItem[]) =>
-    request<Pedido>('/pedidos/confirmar', {
-      method: 'POST',
+    request<Pedido>("/pedidos/confirmar", {
+      method: "POST",
       body: JSON.stringify({ itens }),
     }),
-  historico: () => request<Pedido[]>('/pedidos/historico'),
+  historico: () => request<Pedido[]>("/pedidos/historico"),
 };
