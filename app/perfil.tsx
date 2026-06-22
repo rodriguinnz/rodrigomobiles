@@ -1,28 +1,28 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-  Alert,
-} from "react-native";
-import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { authApi } from "@/services/api";
-
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
-  User,
-  Mail,
-  Phone,
-  Trophy,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import {
   Calendar,
-  Star,
-  ShieldCheck,
   LogOut,
+  Mail,
   Pencil,
+  Phone,
+  Star,
   Trash2,
+  Trophy,
+  User
 } from "lucide-react-native";
 
 export default function Perfil() {
@@ -44,17 +44,13 @@ export default function Perfil() {
       <View style={styles.center}>
         <User size={70} color="#555" />
 
-        <Text style={styles.notLogged}>
-          Você não está logado
-        </Text>
+        <Text style={styles.notLogged}>Você não está logado</Text>
 
         <TouchableOpacity
           style={styles.loginButton}
           onPress={() => router.push("/login")}
         >
-          <Text style={styles.loginText}>
-            Entrar / Cadastrar
-          </Text>
+          <Text style={styles.loginText}>Entrar / Cadastrar</Text>
         </TouchableOpacity>
       </View>
     );
@@ -70,10 +66,7 @@ export default function Perfil() {
     } catch (error) {
       console.log(error);
 
-      Alert.alert(
-        "Erro",
-        "Não foi possível sair da conta."
-      );
+      Alert.alert("Erro", "Não foi possível sair da conta.");
     } finally {
       setLoggingOut(false);
     }
@@ -97,23 +90,17 @@ export default function Perfil() {
 
               await logout();
 
-              Alert.alert(
-                "Sucesso",
-                "Conta excluída com sucesso."
-              );
+              Alert.alert("Sucesso", "Conta excluída com sucesso.");
 
               router.replace("/login");
             } catch (error) {
               console.log(error);
 
-              Alert.alert(
-                "Erro",
-                "Não foi possível excluir a conta."
-              );
+              Alert.alert("Erro", "Não foi possível excluir a conta.");
             }
           },
         },
-      ]
+      ],
     );
   }
 
@@ -125,8 +112,8 @@ export default function Perfil() {
     user.pontos >= 500
       ? "Ouro 🥇"
       : user.pontos >= 200
-      ? "Prata 🥈"
-      : "Bronze 🥉";
+        ? "Prata 🥈"
+        : "Bronze 🥉";
 
   return (
     <ScrollView
@@ -142,40 +129,66 @@ export default function Perfil() {
         </Text>
       </View>
 
-      <Text style={styles.nome}>
-        {user.nome}
-      </Text>
+      <Text style={styles.nome}>{user.nome}</Text>
 
       {user.role === "ADMIN" && (
-        <View style={styles.adminBadge}>
-          <ShieldCheck size={14} color="#fff" />
-          <Text style={styles.adminText}>
-            ADMIN
+        <TouchableOpacity
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#E31837",
+            paddingVertical: 16,
+            borderRadius: 16,
+            marginTop: 20,
+            shadowColor: "#E31837",
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.3,
+            shadowRadius: 10,
+            elevation: 5,
+            gap: 10,
+            borderWidth: 1,
+            borderColor: "rgba(255, 255, 255, 0.1)",
+          }}
+          onPress={() => router.push("/admin")}
+          activeOpacity={0.9}
+        >
+          <MaterialCommunityIcons
+            name="shield-crown-outline"
+            size={24}
+            color="#fff"
+          />
+          <Text
+            style={{
+              color: "#fff",
+              fontSize: 16,
+              fontWeight: "bold",
+              letterSpacing: 0.5,
+            }}
+          >
+            Acessar Painel Admin
           </Text>
-        </View>
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={20}
+            color="rgba(255, 255, 255, 0.7)"
+          />
+        </TouchableOpacity>
       )}
 
       <View style={styles.card}>
         <Trophy size={24} color="#F5A623" />
 
         <View style={{ marginLeft: 10 }}>
-          <Text style={styles.cardLabel}>
-            Pontos Fidelidade
-          </Text>
+          <Text style={styles.cardLabel}>Pontos Fidelidade</Text>
 
-          <Text style={styles.cardValue}>
-            {user.pontos} pontos
-          </Text>
+          <Text style={styles.cardValue}>{user.pontos} pontos</Text>
 
-          <Text style={styles.cardSmall}>
-            {nivel}
-          </Text>
+          <Text style={styles.cardSmall}>{nivel}</Text>
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>
-        Informações da Conta
-      </Text>
+      <Text style={styles.sectionTitle}>Informações da Conta</Text>
 
       <InfoRow
         icon={<Mail size={18} color="#E31837" />}
@@ -194,9 +207,7 @@ export default function Perfil() {
       <InfoRow
         icon={<Calendar size={18} color="#E31837" />}
         label="Cadastro"
-        value={new Date(
-          user.createdAt
-        ).toLocaleDateString("pt-BR")}
+        value={new Date(user.createdAt).toLocaleDateString("pt-BR")}
       />
 
       <InfoRow
@@ -205,15 +216,10 @@ export default function Perfil() {
         value={nivel}
       />
 
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={handleEditProfile}
-      >
+      <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
         <Pencil size={18} color="#fff" />
 
-        <Text style={styles.buttonText}>
-          Editar Perfil
-        </Text>
+        <Text style={styles.buttonText}>Editar Perfil</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -222,9 +228,7 @@ export default function Perfil() {
       >
         <Trash2 size={18} color="#fff" />
 
-        <Text style={styles.buttonText}>
-          Excluir Conta
-        </Text>
+        <Text style={styles.buttonText}>Excluir Conta</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -238,9 +242,7 @@ export default function Perfil() {
           <>
             <LogOut size={18} color="#fff" />
 
-            <Text style={styles.buttonText}>
-              Sair da Conta
-            </Text>
+            <Text style={styles.buttonText}>Sair da Conta</Text>
           </>
         )}
       </TouchableOpacity>
@@ -262,13 +264,9 @@ function InfoRow({
       {icon}
 
       <View style={{ marginLeft: 12 }}>
-        <Text style={styles.infoLabel}>
-          {label}
-        </Text>
+        <Text style={styles.infoLabel}>{label}</Text>
 
-        <Text style={styles.infoValue}>
-          {value}
-        </Text>
+        <Text style={styles.infoValue}>{value}</Text>
       </View>
     </View>
   );
@@ -433,4 +431,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-

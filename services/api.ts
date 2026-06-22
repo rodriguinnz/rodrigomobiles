@@ -1,22 +1,22 @@
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
-// ─── BASE URL ─────────────────────────────────────────────────────────────────
+// ─── BASE URL CONFIGURADA ─────────────────────────────────────────────────────
 //
-// ✅  Android Emulator  → 10.0.2.2
-// ✅  iOS Simulator     → localhost
-// ✅  Dispositivo físico → IP da sua máquina na rede local (ex: 192.168.1.100)
-//
-// Para descobrir seu IP: no terminal rode `ipconfig` (Windows) ou `ifconfig` (Mac/Linux)
-// e procure o endereço IPv4 da sua rede Wi-Fi.
+// Seu IP da rede local descoberto via ipconfig: 192.168.0.117
+const MEU_IP_REDE_LOCAL = "192.168.0.117";
 
 const DEV_HOST = Platform.select({
-  android: "10.0.2.2", // Android Emulator → loopback da máquina host
-  ios: "localhost", // iOS Simulator
-  default: "localhost",
+  // Se for o Emulador Android, o IP 10.0.2.2 aponta para o localhost do seu PC
+  android: "10.0.2.2", 
+  // Se for dispositivo físico ou iOS, usa o IP da sua rede local
+  ios: MEU_IP_REDE_LOCAL,
+  default: MEU_IP_REDE_LOCAL,
 });
 
-export const BASE_URL = "http://localhost:3334/api/v1";
+// Junta o host correto com a porta 3334 que definimos no NestJS
+export const BASE_URL = `http://${DEV_HOST}:3334/api/v1`;
 
 // ─── Token helpers ────────────────────────────────────────────────────────────
 const TOKEN_KEY = "@ifburguer:token";
@@ -150,7 +150,6 @@ export const authApi = {
     }),
 
   updateProfile: (
-    // Accept either a single payload object or positional args for backward compatibility
     payloadOrNome:
       | { nome: string; email: string; telefone?: string; fotoPerfil?: string }
       | string,

@@ -157,7 +157,7 @@ export default function Pedidos() {
                 <Text style={styles.total}>Total: {fmtPreco(totalPrice)}</Text>
                 <TouchableOpacity
                   style={[styles.button, loadingSync && { opacity: 0.7 }]}
-                  onPress={handleConfirmar}
+                  onPress={() => router.push("/pagamento")}
                   disabled={loadingSync}
                 >
                   {loadingSync
